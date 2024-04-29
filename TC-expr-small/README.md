@@ -6,5 +6,5 @@ If you want to generate splits from scratch, feel free to directly run the follo
 
 Then simply 
 ```
-run_planetoid.sh
+run_small.sh
 ```
