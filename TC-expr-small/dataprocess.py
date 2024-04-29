@@ -43,13 +43,18 @@ def randomsplit(dataset, val_ratio: float=0.10, test_ratio: float=0.2):
 
 def load_data(args):
     if args.dataset in ['Cora', 'Citeseer', 'Pubmed']:
-        dataset = Planetoid(root="dataset", name=args.dataset)
-        dataset.transform = T.NormalizeFeatures()
-        split_edge = randomsplit(dataset)
-        data = dataset[0]
+        if os.path.exists('data/{}/data_{}'.format(args.dataset, args.run)):
+            data = torch.load('data/{}/data_{}'.format(args.dataset, args.run))
+            split_edge = torch.load('data/{}/split_edge_{}'.format(args.dataset, args.run))
+        else:
+            dataset = Planetoid(root="dataset", name=args.dataset)
+            dataset.transform = T.NormalizeFeatures()
+            split_edge = randomsplit(dataset)
+            data = dataset[0]
 
-        # data = torch.load('data/{}/data_{}'.format(args.dataset, args.run))
-        # split_edge = torch.load('data/{}/split_edge_{}'.format(args.dataset, args.run))
+            torch.save('data/{}/data_{}'.format(args.dataset, args.run))
+            torch.save('data/{}/split_edge_{}'.format(args.dataset, args.run))
+            
         norm = data.x.sum(dim = 1)
         norm[norm == 0] = 1
         data.x = data.x/norm.view(-1, 1)
@@ -65,7 +70,6 @@ def load_data(args):
             data.train_adj = data.train_adj_sage
             data.train_edge_weight = data.train_edge_weight_sage
 
-        # print(data.train_edge_index.shape)
         idx = torch.sort(data.train_edge_index[1])[1]
         data.train_edge_index = data.train_edge_index[:, idx]
         data.train_edge_weight = data.train_edge_weight[idx]
@@ -148,22 +152,6 @@ def load_data(args):
     data.rw_train_adj = reweight(data.train_edge_index, data.train_ptr, data.train_edge_weight, adj_set_dict)
 
     return data, split_edge, adj_set_dict
-
-
-# def add_edge(adj_set_dict, edge_index, n_node):
-#     for i in range(n_node):
-#         nei = adj_set_dict['train'][i]
-
-#         nei_2hop = set()
-#         for _ in nei:
-#             nei_2hop.update(adj_set_dict['train'][_])
-        
-#         nei_2hop = nei_2hop.difference(nei)
-
-#         for _ in nei_2hop:
-
-
-
 
 
 
